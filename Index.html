@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Rush</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f0f4f8, #c8d8e8);
+            color: #333;
+            overflow: hidden;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .game-container {
+            background-color: #ffffff;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+            box-sizing: border-box;
+        }
+
+        .header-panel {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+
+        .score-timer {
+            display: flex;
+            gap: 40px;
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .score, .timer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #e6f0f7;
+            padding: 10px 20px;
+            border-radius: 15px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .score i, .timer i {
+            color: #4CAF50; /* Green for score */
+            font-size: 1.2em;
+        }
+        .timer i {
+            color: #FFC107; /* Orange for timer */
+        }
+
+
+        canvas {
+            background-color: #f7f7f7;
+            border: 5px solid #a7d9f7;
+            border-radius: 15px;
+            display: block;
+            width: 100%;
+            height: 400px; /* Fixed height for consistent gameplay area */
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .control-button {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-button:hover {
+            background-color: #0056b3;
+            box-shadow: 0 7px 20px rgba(0, 123, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .control-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(0, 123, 255, 0.2);
+        }
+
+        .control-button.reset {
+            background-color: #dc3545;
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+        .control-button.reset:hover {
+            background-color: #c82333;
+            box-shadow: 0 7px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        .control-button.serve {
+            background-color: #28a745;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        .control-button.serve:hover {
+            background-color: #218838;
+            box-shadow: 0 7px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .control-button.clear {
+            background-color: #6c757d;
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        }
+        .control-button.clear:hover {
+            background-color: #5a6268;
+            box-shadow: 0 7px 20px rgba(108, 117, 125, 0.4);
+        }
+
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 25px 40px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: none; /* Hidden by default */
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 20px;
+            }
+            .header-panel {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+            .score-timer {
+                flex-direction: column;
+                gap: 15px;
+                font-size: 1.2em;
+            }
+            .control-button {
+                width: calc(50% - 15px); /* Two buttons per row */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .control-button {
+                width: 100%; /* One button per row */
+            }
+            .message-box {
+                width: 80%;
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header-panel">
+            <h1>Restaurant Rush!</h1>
+            <div class="score-timer">
+                <div class="score"><i class="fas fa-star"></i> Score: <span id="score">0</span></div>
+                <div class="timer"><i class="fas fa-hourglass-half"></i> Time: <span id="timer">60</span>s</div>
+            </div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="controls-panel">
+            <button id="startGame" class="control-button"><i class="fas fa-play"></i> Start Game</button>
+            <button id="serveButton" class="control-button serve" disabled><i class="fas fa-concierge-bell"></i> Serve</button>
+            <button id="clearPlate" class="control-button clear" disabled><i class="fas fa-trash-alt"></i> Clear Plate</button>
+            <button id="resetGame" class="control-button reset" disabled><i class="fas fa-redo"></i> Reset Game</button>
+        </div>
+    </div>
+    <div id="messageBox" class="message-box"></div>
+
+    <script>
+        // Get canvas and its 2D rendering context
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Get display elements
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const messageBox = document.getElementById('messageBox');
+
+        // Get control buttons
+        const startGameButton = document.getElementById('startGame');
+        const serveButton = document.getElementById('serveButton');
+        const clearPlateButton = document.getElementById('clearPlate');
+        const resetGameButton = document.getElementById('resetGame');
+
+        // Game configuration
+        const GAME_TIME = 60; // seconds
+        const CUSTOMER_SPAWN_INTERVAL = 3000; // milliseconds
+        const CUSTOMER_PATIENCE_TIME = 15000; // milliseconds
+        const DISH_PREPARATION_TIME = 2000; // milliseconds for each ingredient
+
+        // Game state variables
+        let score = 0;
+        let timeLeft = GAME_TIME;
+        let gameRunning = false;
+        let customers = [];
+        let preparedDish = []; // Stores ingredients currently on the plate
+        let gameInterval;
+        let customerSpawnInterval;
+
+        // Game elements positions and sizes
+        const CUSTOMER_Y = 50;
+        const CUSTOMER_WIDTH = 80;
+        const CUSTOMER_HEIGHT = 100;
+        const KITCHEN_X = 50;
+        const KITCHEN_Y = canvas.height - 150;
+        const KITCHEN_WIDTH = canvas.width - 100;
+        const KITCHEN_HEIGHT = 100;
+        const INGREDIENT_SIZE = 40;
+        const PLATE_X = canvas.width / 2 - 50;
+        const PLATE_Y = canvas.height - 200;
+        const PLATE_WIDTH = 100;
+        const PLATE_HEIGHT = 20;
+
+        // Ingredients and recipes
+        const ingredients = [
+            { name: 'Bun', color: '#D4A05B', icon: '🍞' },
+            { name: 'Patty', color: '#8B4513', icon: '🥩' },
+            { name: 'Cheese', color: '#FFD700', icon: '🧀' },
+            { name: 'Lettuce', color: '#7CFC00', icon: '🥬' },
+            { name: 'Tomato', color: '#FF6347', icon: '🍅' },
+            { name: 'Fries', color: '#F4D03F', icon: '🍟' } // Added fries
+        ];
+
+        const recipes = [
+            { name: 'Burger', ingredients: ['Bun', 'Patty', 'Cheese', 'Lettuce', 'Tomato'], value: 100 },
+            { name: 'Cheeseburger', ingredients: ['Bun', 'Patty', 'Cheese', 'Lettuce'], value: 90 },
+            { name: 'Salad', ingredients: ['Lettuce', 'Tomato', 'Cheese'], value: 70 },
+            { name: 'Fries', ingredients: ['Fries'], value: 50 } // Added fries recipe
+        ];
+
+        // --- Utility Functions ---
+
+        /**
+         * Displays a message box with the given text for a specified duration.
+         * @param {string} msg - The message to display.
+         * @param {number} duration - The duration in milliseconds to display the message.
+         */
+        function showMessage(msg, duration = 1500) {
+            messageBox.textContent = msg;
+            messageBox.style.display = 'block';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, duration);
+        }
+
+        /**
+         * Generates a random integer within a specified range.
+         * @param {number} min - The minimum value (inclusive).
+         * @param {number} max - The maximum value (exclusive).
+         * @returns {number} A random integer.
+         */
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min)) + min;
+        }
+
+        /**
+         * Checks if two rectangles are overlapping.
+         * @param {object} rect1 - First rectangle {x, y, width, height}.
+         * @param {object} rect2 - Second rectangle {x, y, width, height}.
+         * @returns {boolean} True if overlapping, false otherwise.
+         */
+        function isColliding(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        // --- Game Elements Rendering ---
+
+        /**
+         * Draws a customer on the canvas.
+         * @param {object} customer - The customer object {x, order, patience}.
+         */
+        function drawCustomer(customer) {
+            ctx.beginPath();
+            ctx.rect(customer.x, CUSTOMER_Y, CUSTOMER_WIDTH, CUSTOMER_HEIGHT);
+            ctx.fillStyle = customer.color;
+            ctx.roundRect(customer.x, CUSTOMER_Y, CUSTOMER_WIDTH, CUSTOMER_HEIGHT, 10);
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw face
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(customer.x + CUSTOMER_WIDTH * 0.3, CUSTOMER_Y + CUSTOMER_HEIGHT * 0.3, 5, 0, Math.PI * 2); // Left eye
+            ctx.arc(customer.x + CUSTOMER_WIDTH * 0.7, CUSTOMER_Y + CUSTOMER_HEIGHT * 0.3, 5, 0, Math.PI * 2); // Right eye
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(customer.x + CUSTOMER_WIDTH * 0.5, CUSTOMER_Y + CUSTOMER_HEIGHT * 0.6, 10, 0, Math.PI); // Mouth
+            ctx.stroke();
+
+            // Draw order bubble
+            const bubbleX = customer.x + CUSTOMER_WIDTH / 2;
+            const bubbleY = CUSTOMER_Y - 30;
+            ctx.beginPath();
+            ctx.arc(bubbleX, bubbleY, 25, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            ctx.strokeStyle = '#555';
+            ctx.stroke();
+
+            // Draw order icon
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#000';
+            ctx.fillText(customer.order.icon, bubbleX, bubbleY);
+
+            // Draw patience bar
+            const patiencePercentage = (customer.patience / CUSTOMER_PATIENCE_TIME);
+            const barWidth = CUSTOMER_WIDTH * 0.8;
+            const barHeight = 8;
+            const barX = customer.x + (CUSTOMER_WIDTH - barWidth) / 2;
+            const barY = CUSTOMER_Y + CUSTOMER_HEIGHT + 10;
+
+            ctx.fillStyle = '#eee'; // Background of bar
+            ctx.roundRect(barX, barY, barWidth, barHeight, 4);
+            ctx.fill();
+
+            // Color changes based on patience
+            if (patiencePercentage > 0.6) {
+                ctx.fillStyle = '#28a745'; // Green
+            } else if (patiencePercentage > 0.3) {
+                ctx.fillStyle = '#ffc107'; // Orange
+            } else {
+                ctx.fillStyle = '#dc3545'; // Red
+            }
+            ctx.roundRect(barX, barY, barWidth * patiencePercentage, barHeight, 4);
+            ctx.fill();
+        }
+
+        /**
+         * Draws the kitchen area and ingredient stations.
+         */
+        function drawKitchen() {
+            ctx.fillStyle = '#A0522D'; // Brown for counter
+            ctx.roundRect(KITCHEN_X, KITCHEN_Y, KITCHEN_WIDTH, KITCHEN_HEIGHT, 15);
+            ctx.fill();
+            ctx.strokeStyle = '#5A2E0E';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Draw ingredient stations
+            const startX = KITCHEN_X + 20;
+            const spacing = (KITCHEN_WIDTH - 40 - ingredients.length * INGREDIENT_SIZE) / (ingredients.length - 1);
+            ingredients.forEach((ingredient, index) => {
+                const ingX = startX + index * (INGREDIENT_SIZE + spacing);
+                ctx.beginPath();
+                ctx.rect(ingX, KITCHEN_Y + (KITCHEN_HEIGHT - INGREDIENT_SIZE) / 2, INGREDIENT_SIZE, INGREDIENT_SIZE);
+                ctx.fillStyle = ingredient.color;
+                ctx.roundRect(ingX, KITCHEN_Y + (KITCHEN_HEIGHT - INGREDIENT_SIZE) / 2, INGREDIENT_SIZE, INGREDIENT_SIZE, 5);
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#000';
+                ctx.fillText(ingredient.icon, ingX + INGREDIENT_SIZE / 2, KITCHEN_Y + (KITCHEN_HEIGHT - INGREDIENT_SIZE) / 2 + INGREDIENT_SIZE / 2);
+            });
+        }
+
+        /**
+         * Draws the plate and the ingredients on it.
+         */
+        function drawPlate() {
+            // Draw plate outline
+            ctx.fillStyle = '#CCC'; // Plate color
+            ctx.roundRect(PLATE_X, PLATE_Y, PLATE_WIDTH, PLATE_HEIGHT, 5);
+            ctx.fill();
+            ctx.strokeStyle = '#888';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw ingredients on the plate
+            preparedDish.forEach((ingredientName, index) => {
+                const ingredient = ingredients.find(ing => ing.name === ingredientName);
+                if (ingredient) {
+                    const ingX = PLATE_X + (PLATE_WIDTH / preparedDish.length) * index + (PLATE_WIDTH / preparedDish.length - INGREDIENT_SIZE * 0.7) / 2;
+                    const ingY = PLATE_Y - INGREDIENT_SIZE * 0.7 - (index * 5); // Stack slightly
+
+                    ctx.beginPath();
+                    ctx.rect(ingX, ingY, INGREDIENT_SIZE * 0.7, INGREDIENT_SIZE * 0.7);
+                    ctx.fillStyle = ingredient.color;
+                    ctx.roundRect(ingX, ingY, INGREDIENT_SIZE * 0.7, INGREDIENT_SIZE * 0.7, 3);
+                    ctx.fill();
+                    ctx.strokeStyle = '#333';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+
+                    ctx.font = '16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#000';
+                    ctx.fillText(ingredient.icon, ingX + (INGREDIENT_SIZE * 0.7) / 2, ingY + (INGREDIENT_SIZE * 0.7) / 2);
+                }
+            });
+        }
+
+        /**
+         * Clears the canvas and redraws all game elements.
+         */
+        function draw() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw kitchen and plate
+            drawKitchen();
+            drawPlate();
+
+            // Draw customers
+            customers.forEach(customer => drawCustomer(customer));
+        }
+
+        // --- Game Logic ---
+
+        /**
+         * Spawns a new customer with a random order.
+         */
+        function spawnCustomer() {
+            if (customers.length < 5) { // Limit number of customers on screen
+                const randomRecipe = recipes[getRandomInt(0, recipes.length)];
+                const randomX = getRandomInt(50, canvas.width - CUSTOMER_WIDTH - 50);
+                const customerColors = ['#FADADD', '#B0E0E6', '#FFDAB9', '#E6E6FA', '#D3D3D3'];
+                const randomColor = customerColors[getRandomInt(0, customerColors.length)];
+
+                customers.push({
+                    x: randomX,
+                    order: randomRecipe,
+                    patience: CUSTOMER_PATIENCE_TIME,
+                    color: randomColor
+                });
+            }
+        }
+
+        /**
+         * Updates the game state each frame.
+         * @param {number} deltaTime - Time elapsed since last frame in milliseconds.
+         */
+        function update(deltaTime) {
+            if (!gameRunning) return;
+
+            // Update customer patience
+            customers.forEach(customer => {
+                customer.patience -= deltaTime;
+                if (customer.patience <= 0) {
+                    showMessage(`Customer left! You lost ${customer.order.value / 2} points!`, 2000);
+                    score = Math.max(0, score - customer.order.value / 2); // Penalize for lost customers
+                    customers = customers.filter(c => c !== customer); // Remove impatient customer
+                }
+            });
+
+            // Update timer
+            timeLeft -= deltaTime / 1000; // Convert to seconds
+            timerDisplay.textContent = Math.max(0, Math.floor(timeLeft));
+
+            if (timeLeft <= 0) {
+                endGame();
+            }
+
+            scoreDisplay.textContent = score;
+        }
+
+        /**
+         * Main game loop.
+         * @param {number} currentTime - Current time provided by requestAnimationFrame.
+         */
+        let lastTime = 0;
+        function gameLoop(currentTime) {
+            if (!gameRunning) return;
+
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+
+            update(deltaTime);
+            draw();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        /**
+         * Checks if the currently prepared dish matches any customer's order.
+         * @returns {object|null} The matching customer if found, otherwise null.
+         */
+        function checkMatchingOrder() {
+            // Sort prepared dish for consistent comparison
+            const sortedPreparedDish = [...preparedDish].sort();
+
+            for (const customer of customers) {
+                // Find the recipe for the customer's order
+                const customerRecipe = recipes.find(r => r.name === customer.order.name);
+
+                if (customerRecipe) {
+                    // Sort the recipe ingredients for consistent comparison
+                    const sortedRecipeIngredients = [...customerRecipe.ingredients].sort();
+
+                    // Compare if lengths are same and all ingredients match
+                    if (sortedPreparedDish.length === sortedRecipeIngredients.length &&
+                        sortedPreparedDish.every((val, index) => val === sortedRecipeIngredients[index])) {
+                        return customer;
+                    }
+                }
+            }
+            return null;
+        }
+
+        // --- Event Handlers ---
+
+        /**
+         * Handles clicks on the canvas for ingredient selection.
+         * @param {MouseEvent} event - The click event.
+         */
+        function handleCanvasClick(event) {
+            if (!gameRunning) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            // Check if an ingredient station was clicked
+            const startX = KITCHEN_X + 20;
+            const spacing = (KITCHEN_WIDTH - 40 - ingredients.length * INGREDIENT_SIZE) / (ingredients.length - 1);
+            ingredients.forEach((ingredient, index) => {
+                const ingX = startX + index * (INGREDIENT_SIZE + spacing);
+                const ingY = KITCHEN_Y + (KITCHEN_HEIGHT - INGREDIENT_SIZE) / 2;
+
+                if (mouseX >= ingX && mouseX <= ingX + INGREDIENT_SIZE &&
+                    mouseY >= ingY && mouseY <= ingY + INGREDIENT_SIZE) {
+
+                    // Add ingredient to prepared dish if not already present
+                    // For simplicity, we allow duplicates for now, but a real game might prevent it.
+                    preparedDish.push(ingredient.name);
+                    showMessage(`Added ${ingredient.name}`, 800);
+                    draw(); // Redraw immediately to show ingredient on plate
+                }
+            });
+        }
+
+        /**
+         * Serves the prepared dish to a customer.
+         */
+        function serveDish() {
+            if (!gameRunning) return;
+
+            const matchingCustomer = checkMatchingOrder();
+            if (matchingCustomer) {
+                const recipeValue = matchingCustomer.order.value;
+                const patienceBonus = Math.floor(matchingCustomer.patience / 1000); // 1 point per second of patience left
+                score += recipeValue + patienceBonus;
+                showMessage(`Served! +${recipeValue + patienceBonus} points!`, 1500);
+                customers = customers.filter(c => c !== matchingCustomer);
+                preparedDish = []; // Clear the plate
+                draw();
+            } else {
+                showMessage('No matching order! Try again.', 1500);
+            }
+        }
+
+        /**
+         * Clears all ingredients from the plate.
+         */
+        function clearPlate() {
+            if (!gameRunning) return;
+            preparedDish = [];
+            showMessage('Plate cleared!', 800);
+            draw();
+        }
+
+        /**
+         * Initializes and starts the game.
+         */
+        function startGame() {
+            if (gameRunning) return; // Prevent multiple starts
+
+            // Reset game state
+            score = 0;
+            timeLeft = GAME_TIME;
+            customers = [];
+            preparedDish = [];
+            gameRunning = true;
+            scoreDisplay.textContent = score;
+            timerDisplay.textContent = timeLeft;
+            showMessage('Game Started! Take orders!', 2000);
+
+            // Enable/Disable buttons
+            startGameButton.disabled = true;
+            serveButton.disabled = false;
+            clearPlateButton.disabled = false;
+            resetGameButton.disabled = false;
+
+            // Start intervals
+            customerSpawnInterval = setInterval(spawnCustomer, CUSTOMER_SPAWN_INTERVAL);
+            lastTime = performance.now(); // Initialize lastTime for gameLoop
+            requestAnimationFrame(gameLoop); // Start the main game loop
+        }
+
+        /**
+         * Ends the game and displays final score.
+         */
+        function endGame() {
+            gameRunning = false;
+            clearInterval(gameInterval);
+            clearInterval(customerSpawnInterval);
+
+            showMessage(`Game Over! Final Score: ${score}`, 5000);
+
+            // Enable/Disable buttons
+            startGameButton.disabled = false;
+            serveButton.disabled = true;
+            clearPlateButton.disabled = true;
+            // Reset button remains enabled to allow a new game
+        }
+
+        /**
+         * Resets the game to its initial state.
+         */
+        function resetGame() {
+            endGame(); // Stop current game first
+            score = 0;
+            timeLeft = GAME_TIME;
+            customers = [];
+            preparedDish = [];
+            scoreDisplay.textContent = score;
+            timerDisplay.textContent = timeLeft;
+            draw(); // Clear canvas
+            startGameButton.disabled = false;
+            serveButton.disabled = true;
+            clearPlateButton.disabled = true;
+            resetGameButton.disabled = true; // Disable until game starts again
+            showMessage('Game reset. Press Start to play again!', 2000);
+        }
+
+        // --- Event Listeners ---
+        canvas.addEventListener('click', handleCanvasClick);
+        startGameButton.addEventListener('click', startGame);
+        serveButton.addEventListener('click', serveDish);
+        clearPlateButton.addEventListener('click', clearPlate);
+        resetGameButton.addEventListener('click', resetGame);
+
+        // Initial setup on window load
+        window.onload = function() {
+            // Adjust canvas size to fit container dynamically
+            const gameContainer = document.querySelector('.game-container');
+            canvas.width = gameContainer.clientWidth - 60; // Adjust for padding
+            canvas.height = 400; // Keep fixed height for layout
+            draw(); // Initial drawing of the game board
+            showMessage('Welcome to Restaurant Rush! Press Start to begin!', 3000);
+            resetGameButton.disabled = true; // Ensure reset is disabled at start
+            serveButton.disabled = true;
+            clearPlateButton.disabled = true;
+        };
+    </script>
+</body>
+</html>
